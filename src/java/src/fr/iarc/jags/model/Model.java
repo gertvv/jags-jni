@@ -16,8 +16,6 @@ public class Model {
 	native public int getCurrentIteration();
 	native public void addMonitor(Monitor m);
 	native public void removeMonitor(Monitor m);
-	native public boolean addDefaultMonitors(String type, int thin);
-	native public void clearDefaultMonitors(String type);
 	native public int nChains();
 	native public boolean setRandomNumberGenerator(String name, int chain);
 	native public boolean stopAdapting();
@@ -27,10 +25,6 @@ public class Model {
 	}
 
 	native private long construct(int nChains);
-
-	private long getInstancePointer() {
-		return d_ptr;
-	}
 
 	native private void addStochasticNode(
 			String distribution,
