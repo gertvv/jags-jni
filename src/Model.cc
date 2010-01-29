@@ -9,6 +9,12 @@ using std::cout;
 using std::cerr;
 using std::endl;
 
+Model *getModel(JNIEnv *env, jobject jobj) {
+	jclass cls = env->GetObjectClass(jobj);
+	jfieldID fid = env->GetFieldID(cls, "d_ptr", "J");
+	return (Model *)env->GetLongField(jobj, fid);
+}
+
 /*
  * Class:     fr.iarc.jags.model.Model
  * Method:    initialize
@@ -23,8 +29,8 @@ JNIEXPORT void JNICALL Java_fr_iarc_jags_model_Model_initialize
  * Method:    isInitialized
  */
 JNIEXPORT jboolean JNICALL Java_fr_iarc_jags_model_Model_isInitialized
-  (JNIEnv *, jobject) {
-	cout << "Model.isInitialized" << endl;
+  (JNIEnv *env, jobject jobj) {
+	return (jboolean) getModel(env, jobj)->isInitialized();
 }
 
 /*
@@ -41,14 +47,13 @@ JNIEXPORT void JNICALL Java_fr_iarc_jags_model_Model_update
  * Method:    getCurrentIteration
  */
 JNIEXPORT jint JNICALL Java_fr_iarc_jags_model_Model_getCurrentIteration
-  (JNIEnv *, jobject) {
-	cout << "Model.getCurrentIteration" << endl;
+  (JNIEnv *env, jobject jobj) {
+	return (jint) getModel(env, jobj)->iteration();
 }
 
 /*
- * Class:     fr_iarc_jags_model_Model
+ * Class:     fr.iarc.jags.model.Model
  * Method:    addMonitor
- * Signature: (Lfr/iarc/jags/model/Monitor;)V
  */
 JNIEXPORT void JNICALL Java_fr_iarc_jags_model_Model_addMonitor
   (JNIEnv *, jobject, jobject) {
@@ -56,9 +61,8 @@ JNIEXPORT void JNICALL Java_fr_iarc_jags_model_Model_addMonitor
 }
 
 /*
- * Class:     fr_iarc_jags_model_Model
+ * Class:     fr.iarc.jags.model.Model
  * Method:    removeMonitor
- * Signature: (Lfr/iarc/jags/model/Monitor;)V
  */
 JNIEXPORT void JNICALL Java_fr_iarc_jags_model_Model_removeMonitor
   (JNIEnv *, jobject, jobject) {
@@ -66,22 +70,17 @@ JNIEXPORT void JNICALL Java_fr_iarc_jags_model_Model_removeMonitor
 }
 
 /*
- * Class:     fr_iarc_jags_model_Model
+ * Class:     fr.iarc.jags.model.Model
  * Method:    nChains
- * Signature: ()I
  */
 JNIEXPORT jint JNICALL Java_fr_iarc_jags_model_Model_nChains
   (JNIEnv *env, jobject jobj) {
-	jclass cls = env->GetObjectClass(jobj);
-	jfieldID fid = env->GetFieldID(cls, "d_ptr", "J");
-	Model *model = (Model *)env->GetLongField(jobj, fid);
-	return (jint) model->nchain();
+	return (jint) getModel(env, jobj)->nchain();
 }
 
 /*
- * Class:     fr_iarc_jags_model_Model
+ * Class:     fr.iarc.jags.model.Model
  * Method:    setRandomNumberGenerator
- * Signature: (Ljava/lang/String;I)Z
  */
 JNIEXPORT jboolean JNICALL Java_fr_iarc_jags_model_Model_setRandomNumberGenerator
   (JNIEnv *, jobject, jstring, jint) {
@@ -89,9 +88,8 @@ JNIEXPORT jboolean JNICALL Java_fr_iarc_jags_model_Model_setRandomNumberGenerato
 }
 
 /*
- * Class:     fr_iarc_jags_model_Model
+ * Class:     fr.iarc.jags.model.Model
  * Method:    stopAdapting
- * Signature: ()Z
  */
 JNIEXPORT jboolean JNICALL Java_fr_iarc_jags_model_Model_stopAdapting
   (JNIEnv *, jobject) {
@@ -99,19 +97,17 @@ JNIEXPORT jboolean JNICALL Java_fr_iarc_jags_model_Model_stopAdapting
 }
 
 /*
- * Class:     fr_iarc_jags_model_Model
+ * Class:     fr.iarc.jags.model.Model
  * Method:    isAdapting
- * Signature: ()Z
  */
 JNIEXPORT jboolean JNICALL Java_fr_iarc_jags_model_Model_isAdapting
-  (JNIEnv *, jobject) {
-	cout << "Model.isAdapting" << endl;
+  (JNIEnv *env, jobject jobj) {
+	return (jboolean) getModel(env, jobj)->isAdapting();
 }
 
 /*
- * Class:     fr_iarc_jags_model_Model
+ * Class:     fr.iarc.jags.model.Model
  * Method:    construct
- * Signature: (I)J
  */
 JNIEXPORT jlong JNICALL Java_fr_iarc_jags_model_Model_construct
   (JNIEnv *env, jobject obj, jint nChains) {
@@ -120,32 +116,42 @@ JNIEXPORT jlong JNICALL Java_fr_iarc_jags_model_Model_construct
 }
 
 /*
- * Class:     fr_iarc_jags_model_Model
- * Method:    addStochasticNode
- * Signature: (Ljava/lang/String;[Lfr/iarc/jags/model/Node;Lfr/iarc/jags/model/Node;Lfr/iarc/jags/model/Node;)V
+ * Class:     fr.iarc.jags.model.Model
+ * Method:    destruct
  */
-JNIEXPORT void JNICALL Java_fr_iarc_jags_model_Model_addStochasticNode
-  (JNIEnv *, jobject, jstring, jobjectArray, jobject, jobject) {
+JNIEXPORT void JNICALL Java_fr_iarc_jags_model_Model_destruct
+  (JNIEnv *env, jobject jobj) {
+	delete getModel(env, jobj);
+}
+
+/*
+ * Class:     fr.iarc.jags.model.Model
+ * Method:    addStochasticNode
+ */
+JNIEXPORT void JNICALL Java_fr_iarc_jags_model_Model_addStochasticNode(
+		JNIEnv *env, jobject model,
+		jobject node, jstring distr, jobjectArray parents,
+		jobject lower, jobject upper) {
 	cout << "Model.addStochasticNode" << endl;
 }
 
 
 /*
- * Class:     fr_iarc_jags_model_Model
+ * Class:     fr.iarc.jags.model.Model
  * Method:    addDeterministicNode
- * Signature: (Ljava/lang/String;[Lfr/iarc/jags/model/Node;)V
  */
-JNIEXPORT void JNICALL Java_fr_iarc_jags_model_Model_addDeterministicNode
-  (JNIEnv *, jobject, jstring, jobjectArray) {
+JNIEXPORT void JNICALL Java_fr_iarc_jags_model_Model_addDeterministicNode(
+		JNIEnv *env, jobject model,
+		jobject node, jstring func, jobjectArray parents) {
 	cout << "Model.addDeterministicNode" << endl;
 }
 
 /*
- * Class:     fr_iarc_jags_model_Model
+ * Class:     fr.iarc.jags.model.Model
  * Method:    addConstantNode
- * Signature: ([I[D)V
  */
-JNIEXPORT void JNICALL Java_fr_iarc_jags_model_Model_addConstantNode
-  (JNIEnv *, jobject, jintArray, jdoubleArray) {
+JNIEXPORT void JNICALL Java_fr_iarc_jags_model_Model_addConstantNode(
+		JNIEnv *env, jobject model,
+		jobject node, jintArray dim, jdoubleArray values) {
 	cout << "Model.addConstantNode" << endl;
 }
