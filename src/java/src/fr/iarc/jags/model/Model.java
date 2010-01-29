@@ -28,8 +28,9 @@ public class Model {
 	native public boolean setRandomNumberGenerator(String name, int chain);
 	native public boolean stopAdapting();
 	native public boolean isAdapting();
-	
-	public void addNode(Node node) {
+
+	public void addNode(ConstantNode node) {
+		addConstantNode(node, node.getDim(), node.getValue());
 	}
 
 	native private long construct(int nChains);

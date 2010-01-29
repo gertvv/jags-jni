@@ -10,6 +10,9 @@ public class Main {
 		System.out.println("Current iteration " + model.getCurrentIteration());
 		System.out.println("Initialized " + model.isInitialized());
 		System.out.println("Adapting " + model.isAdapting());
+
+		ConstantNode cn = new ConstantNode(new int[]{1}, new double[]{8.8});
+		model.addNode(cn);
 	}
 
 	public static void main(String[] args) {
