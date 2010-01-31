@@ -55,11 +55,12 @@ JNIEXPORT jint JNICALL Java_fr_iarc_jags_model_Model_getCurrentIteration
 
 /*
  * Class:     fr.iarc.jags.model.Model
- * Method:    addMonitor
+ * Method:    addTraceMonitor
  */
-JNIEXPORT void JNICALL Java_fr_iarc_jags_model_Model_addMonitor
-  (JNIEnv *, jobject, jobject) {
-	cout << "Model.addMonitor" << endl;
+JNIEXPORT jobject JNICALL Java_fr_iarc_jags_model_Model_addTraceMonitor
+  (JNIEnv *env, jobject model, jobject node) {
+	cout << "Model.addTraceMonitor" << endl;
+	return 0;
 }
 
 /*
@@ -126,15 +127,22 @@ JNIEXPORT void JNICALL Java_fr_iarc_jags_model_Model_destruct
 	delete getModel(env, jobj);
 }
 
+jobject createJavaNode(JNIEnv *env, Node *ptr) {
+	jclass cls = env->FindClass("fr/iarc/jags/model/Node");
+	jmethodID mid = env->GetMethodID(cls, "<init>", "(J)V");
+	return env->NewObject(cls, mid, (jlong)ptr);
+}
+
 /*
  * Class:     fr.iarc.jags.model.Model
  * Method:    addStochasticNode
  */
-JNIEXPORT void JNICALL Java_fr_iarc_jags_model_Model_addStochasticNode(
+JNIEXPORT jobject JNICALL Java_fr_iarc_jags_model_Model_addStochasticNode(
 		JNIEnv *env, jobject model,
-		jobject node, jstring distr, jobjectArray parents,
+		jstring distr, jobjectArray parents,
 		jobject lower, jobject upper) {
 	cout << "Model.addStochasticNode" << endl;
+	return createJavaNode(env, 0);
 }
 
 
@@ -142,10 +150,11 @@ JNIEXPORT void JNICALL Java_fr_iarc_jags_model_Model_addStochasticNode(
  * Class:     fr.iarc.jags.model.Model
  * Method:    addDeterministicNode
  */
-JNIEXPORT void JNICALL Java_fr_iarc_jags_model_Model_addDeterministicNode(
+JNIEXPORT jobject JNICALL Java_fr_iarc_jags_model_Model_addDeterministicNode(
 		JNIEnv *env, jobject model,
-		jobject node, jstring func, jobjectArray parents) {
+		jstring func, jobjectArray parents) {
 	cout << "Model.addDeterministicNode" << endl;
+	return createJavaNode(env, 0);
 }
 
 vector<unsigned int> jArrayToUnsignedVector(JNIEnv *env, jintArray jarr) {
@@ -170,13 +179,14 @@ vector<double> jArrayToDoubleVector(JNIEnv *env, jdoubleArray jarr) {
  * Class:     fr.iarc.jags.model.Model
  * Method:    addConstantNode
  */
-JNIEXPORT void JNICALL Java_fr_iarc_jags_model_Model_addConstantNode(
+JNIEXPORT jobject JNICALL Java_fr_iarc_jags_model_Model_addConstantNode(
 		JNIEnv *env, jobject model,
-		jobject jNode, jintArray jDim, jdoubleArray jValue) {
+		jintArray jDim, jdoubleArray jValue) {
 	vector<unsigned int> dim = jArrayToUnsignedVector(env, jDim);
 	vector<double> value = jArrayToDoubleVector(env, jValue);
 	cout << "Model.addConstantNode" << endl;
 	ConstantNode *node =
 		new ConstantNode(dim, value, getModel(env, model)->nchain());
 	getModel(env, model)->addNode(node);
+	return createJavaNode(env, node);
 }

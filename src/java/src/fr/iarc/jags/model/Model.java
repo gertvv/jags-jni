@@ -22,29 +22,25 @@ public class Model {
 	native public boolean isInitialized();
 	native public void update(int niter);
 	native public int getCurrentIteration();
-	native public void addMonitor(Monitor m);
+	native public Monitor addTraceMonitor(Node n);
 	native public void removeMonitor(Monitor m);
 	native public int nChains();
 	native public boolean setRandomNumberGenerator(String name, int chain);
 	native public boolean stopAdapting();
 	native public boolean isAdapting();
 
-	public void addNode(ConstantNode node) {
-		addConstantNode(node, node.getDim(), node.getValue());
-	}
-
 	native private long construct(int nChains);
 	native private void destruct();
 
-	native private void addStochasticNode(Node node,
+	native public Node addStochasticNode(
 			String distribution,
 			Node[] parameters,
 			Node lower, Node upper);
 
-	native private void addDeterministicNode(Node node,
+	native public Node addDeterministicNode(
 			String operation,
 			Node[] parents);
 
-	native private void addConstantNode(Node node,
+	native public Node addConstantNode(
 			int[] dim, double[] value);
 }

@@ -1,4 +1,5 @@
 package fr.iarc.jags.model;
 
-public interface Monitor {
+public class Monitor {
+	private long d_ptr;
 }
