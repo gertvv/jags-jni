@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project basedir="." default="warn" name="JAGS-JNI">
+	<target name="warn">
+		<echo>Please use the Makefile!</echo>
+	</target>
+
+	<loadfile property="header" srcFile="HEADER" />
+
+	<target name="license">
+		<replaceregexp flags="s"
+			match=".*package fr.iarc.jags"
+			replace="${header}package fr.iarc.jags">
+			<fileset dir="java/src">
+				<include name="**/*.java" />
+			</fileset>
+		</replaceregexp>
+		<replaceregexp flags="s"
+			match="[^#]*#"
+			replace="${header}#">
+			<fileset dir=".">
+				<include name="*.cc" />
+			</fileset>
+		</replaceregexp>
+	</target>
+</project>

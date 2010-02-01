@@ -4,7 +4,10 @@ INCLUDE=-I../include -I$(JAVA)/include -I$(JAVA)/include/linux
 
 all: libjagsjni.so Main test
 
-.PHONY: Main
+maven-install: test
+	(cd java; LD_LIBRARY_PATH="..:/usr/local/lib/JAGS/modules-2.0.0" mvn install)
+
+.PHONY: Main test maven-install all
 
 Main: java/target/classes/fr/iarc/jags/Main.class
 
