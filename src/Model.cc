@@ -1,15 +1,22 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <list>
 
 #include <model/Model.h>
+#include <model/Monitor.h>
 #include <graph/ConstantNode.h>
+#include <compiler/Compiler.h>
+#include <compiler/LogicalFactory.h>
+#include <model/MonitorFactory.h>
 #include "Model.h"
 
 using std::cout;
 using std::cerr;
 using std::endl;
 using std::vector;
+using std::string;
+using std::list;
 
 Model *getModel(JNIEnv *env, jobject jobj) {
 	jclass cls = env->GetObjectClass(jobj);
@@ -17,13 +24,21 @@ Model *getModel(JNIEnv *env, jobject jobj) {
 	return (Model *)env->GetLongField(jobj, fid);
 }
 
+Node *getNode(JNIEnv *env, jobject jobj) {
+	jclass cls = env->GetObjectClass(jobj);
+	jfieldID fid = env->GetFieldID(cls, "d_ptr", "J");
+	return (Node *)env->GetLongField(jobj, fid);
+}
+
+
 /*
  * Class:     fr.iarc.jags.model.Model
  * Method:    initialize
  */
-JNIEXPORT void JNICALL Java_fr_iarc_jags_model_Model_initialize
-  (JNIEnv *, jobject, jboolean) {
+JNIEXPORT void JNICALL Java_fr_iarc_jags_model_Model_initialize(
+		JNIEnv *env, jobject jModel, jboolean datagen) {
 	cout << "Model.initialize" << endl;
+	getModel(env, jModel)->initialize(datagen);
 }
 
 /*
@@ -39,9 +54,10 @@ JNIEXPORT jboolean JNICALL Java_fr_iarc_jags_model_Model_isInitialized
  * Class:     fr.iarc.jags.model.Model
  * Method:    update
  */
-JNIEXPORT void JNICALL Java_fr_iarc_jags_model_Model_update
-  (JNIEnv *, jobject, jint) {
+JNIEXPORT void JNICALL Java_fr_iarc_jags_model_Model_update(
+		JNIEnv *env, jobject jModel, jint n) {
 	cout << "Model.update" << endl;
+	getModel(env, jModel)->update((unsigned int)n);
 }
 
 /*
@@ -53,14 +69,47 @@ JNIEXPORT jint JNICALL Java_fr_iarc_jags_model_Model_getCurrentIteration
 	return (jint) getModel(env, jobj)->iteration();
 }
 
+jobject createJavaMonitor(JNIEnv *env, Monitor *ptr) {
+	jclass cls = env->FindClass("fr/iarc/jags/model/Monitor");
+	jmethodID mid = env->GetMethodID(cls, "<init>", "(J)V");
+	return env->NewObject(cls, mid, (jlong)ptr);
+}
+
+Monitor *createMonitor(Model *model, Node *node, string const &type, int thin) {
+	list<MonitorFactory*> const &faclist = Model::monitorFactories();
+
+	cerr << "Monitor for " << node << endl;
+
+	Monitor *monitor = 0;
+	for(list<MonitorFactory*>::const_iterator j = faclist.begin();
+			j != faclist.end(); ++j) {
+		monitor = (*j)->getMonitor(node, model, model->iteration() + 1,
+			thin, type);
+		if (monitor) {
+			model->addMonitor(monitor);
+			break;
+		}
+	}
+
+	cerr << "Monitor: " << monitor << endl;
+	for (list<Monitor*>::const_iterator m = model->monitors().begin();
+			m != model->monitors().end(); ++m) {
+		cerr << "In model: " << *m << " " << (*m)->type();
+	}
+	return monitor;
+}
+
 /*
  * Class:     fr.iarc.jags.model.Model
  * Method:    addTraceMonitor
  */
-JNIEXPORT jobject JNICALL Java_fr_iarc_jags_model_Model_addTraceMonitor
-  (JNIEnv *env, jobject model, jobject node) {
+JNIEXPORT jobject JNICALL Java_fr_iarc_jags_model_Model_addTraceMonitor(
+		JNIEnv *env, jobject jModel, jobject jNode) {
 	cout << "Model.addTraceMonitor" << endl;
-	return 0;
+	Node *node = getNode(env, jNode);
+	Model *model = getModel(env, jModel);
+	return createJavaMonitor(env,
+		createMonitor(model, node, string("trace"), 1));
 }
 
 /*
@@ -145,6 +194,13 @@ JNIEXPORT jobject JNICALL Java_fr_iarc_jags_model_Model_addStochasticNode(
 	return createJavaNode(env, 0);
 }
 
+vector<const Node *> jArrayToNodeVector(JNIEnv *env, jobjectArray jarr) {
+	vector<const Node *> arr(env->GetArrayLength(jarr));
+	for (int i = 0; i < arr.size(); ++i) {
+		arr[i] = getNode(env, env->GetObjectArrayElement(jarr, i));
+	}
+	return arr;
+}
 
 /*
  * Class:     fr.iarc.jags.model.Model
@@ -152,9 +208,14 @@ JNIEXPORT jobject JNICALL Java_fr_iarc_jags_model_Model_addStochasticNode(
  */
 JNIEXPORT jobject JNICALL Java_fr_iarc_jags_model_Model_addDeterministicNode(
 		JNIEnv *env, jobject model,
-		jstring func, jobjectArray parents) {
-	cout << "Model.addDeterministicNode" << endl;
-	return createJavaNode(env, 0);
+		jstring funcName, jobjectArray jParents) {
+	static LogicalFactory factory;
+	vector<const Node*> parents = jArrayToNodeVector(env, jParents);
+	FunctionPtr func = Compiler::funcTab().find(
+		env->GetStringUTFChars(funcName, JNI_FALSE));
+	Node *node = factory.getNode(func, parents, *getModel(env, model));
+	cout << "Model.addDeterministicNode " << node << endl;
+	return createJavaNode(env, node);
 }
 
 vector<unsigned int> jArrayToUnsignedVector(JNIEnv *env, jintArray jarr) {
@@ -184,9 +245,9 @@ JNIEXPORT jobject JNICALL Java_fr_iarc_jags_model_Model_addConstantNode(
 		jintArray jDim, jdoubleArray jValue) {
 	vector<unsigned int> dim = jArrayToUnsignedVector(env, jDim);
 	vector<double> value = jArrayToDoubleVector(env, jValue);
-	cout << "Model.addConstantNode" << endl;
 	ConstantNode *node =
 		new ConstantNode(dim, value, getModel(env, model)->nchain());
+	cout << "Model.addConstantNode " << node << endl;
 	getModel(env, model)->addNode(node);
 	return createJavaNode(env, node);
 }
