@@ -35,7 +35,8 @@ public class Model {
 	native public Node addStochasticNode(
 			String distribution,
 			Node[] parameters,
-			Node lower, Node upper);
+			Node lower, Node upper,
+			double[] data);
 
 	native public Node addDeterministicNode(
 			String operation,

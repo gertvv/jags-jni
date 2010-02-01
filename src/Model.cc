@@ -6,6 +6,9 @@
 #include <model/Model.h>
 #include <model/Monitor.h>
 #include <graph/ConstantNode.h>
+#include <graph/StochasticNode.h>
+#include <graph/DeterministicNode.h>
+#include <graph/LogicalNode.h>
 #include <compiler/Compiler.h>
 #include <compiler/LogicalFactory.h>
 #include <model/MonitorFactory.h>
@@ -25,6 +28,9 @@ Model *getModel(JNIEnv *env, jobject jobj) {
 }
 
 Node *getNode(JNIEnv *env, jobject jobj) {
+	if (!jobj) {
+		return 0;
+	}
 	jclass cls = env->GetObjectClass(jobj);
 	jfieldID fid = env->GetFieldID(cls, "d_ptr", "J");
 	return (Node *)env->GetLongField(jobj, fid);
@@ -182,40 +188,12 @@ jobject createJavaNode(JNIEnv *env, Node *ptr) {
 	return env->NewObject(cls, mid, (jlong)ptr);
 }
 
-/*
- * Class:     fr.iarc.jags.model.Model
- * Method:    addStochasticNode
- */
-JNIEXPORT jobject JNICALL Java_fr_iarc_jags_model_Model_addStochasticNode(
-		JNIEnv *env, jobject model,
-		jstring distr, jobjectArray parents,
-		jobject lower, jobject upper) {
-	cout << "Model.addStochasticNode" << endl;
-	return createJavaNode(env, 0);
-}
-
 vector<const Node *> jArrayToNodeVector(JNIEnv *env, jobjectArray jarr) {
 	vector<const Node *> arr(env->GetArrayLength(jarr));
 	for (int i = 0; i < arr.size(); ++i) {
 		arr[i] = getNode(env, env->GetObjectArrayElement(jarr, i));
 	}
 	return arr;
-}
-
-/*
- * Class:     fr.iarc.jags.model.Model
- * Method:    addDeterministicNode
- */
-JNIEXPORT jobject JNICALL Java_fr_iarc_jags_model_Model_addDeterministicNode(
-		JNIEnv *env, jobject model,
-		jstring funcName, jobjectArray jParents) {
-	static LogicalFactory factory;
-	vector<const Node*> parents = jArrayToNodeVector(env, jParents);
-	FunctionPtr func = Compiler::funcTab().find(
-		env->GetStringUTFChars(funcName, JNI_FALSE));
-	Node *node = factory.getNode(func, parents, *getModel(env, model));
-	cout << "Model.addDeterministicNode " << node << endl;
-	return createJavaNode(env, node);
 }
 
 vector<unsigned int> jArrayToUnsignedVector(JNIEnv *env, jintArray jarr) {
@@ -234,6 +212,123 @@ vector<double> jArrayToDoubleVector(JNIEnv *env, jdoubleArray jarr) {
 		arr[i] = (double)earr[i];
 	}
 	return arr;
+}
+
+string getString(JNIEnv *env, jstring str) {
+	return string(env->GetStringUTFChars(str, JNI_FALSE));
+}
+
+vector<double> const *jArrayToDoubleVectorAlloc(
+		JNIEnv *env, jdoubleArray jarr) {
+	if (!jarr) {
+		return 0;
+	}
+	vector<double> *arr = new vector<double>(env->GetArrayLength(jarr));
+	jdouble *earr = env->GetDoubleArrayElements(jarr, JNI_FALSE);
+	for (int i = 0; i < arr->size(); ++i) {
+		(*arr)[i] = (double)earr[i];
+	}
+	return arr;
+}
+
+Distribution const *getDistribution(string const &distrName) {
+	Distribution const *dist = Compiler::distTab().find(distrName);
+	if (!dist) {
+		throw "Unknown Distribution " + distrName;
+    }
+	return dist;
+}
+
+Node *createStochasticNode(
+		string const &distrName, vector<const Node *> const &parents,
+		Node *lower, Node *upper) {
+}
+
+Node *addUnobservedNode(Model *model,
+		string const &distrName, vector<const Node *> const &parents,
+		Node *lower, Node *upper) {
+	Distribution const *dist = getDistribution(distrName);
+
+	// If the node is unobserved, and we find a function matched to the
+	// distribution in obsFuncTab, then we create a Logical Node instead.
+	FunctionPtr const &func = Compiler::obsFuncTab().find(dist);
+	if (!isNULL(func)) {
+		//FIXME: Why are we not using a factory here?
+		LogicalNode *lnode = LogicalFactory::newNode(func, parents);
+		model->addNode(lnode);
+		return lnode;
+	}
+
+	StochasticNode *snode = new StochasticNode(dist, parents, lower, upper);
+	model->addNode(snode);
+	return snode;
+}
+
+void setNodeData(StochasticNode *node, vector<double> const &data) {
+	for (int n = 0; n < node->nchain(); ++n) {
+		node->setValue(&data[0], data.size(), n);
+	}
+	node->setObserved();
+}
+
+Node *addObservedNode(Model *model,
+		string const &distrName, vector<const Node *> const &parents,
+		Node *lower, Node *upper,
+		vector<double> const *data) {
+	Distribution const *dist = getDistribution(distrName);
+
+	StochasticNode *snode = new StochasticNode(dist, parents, lower, upper);
+	model->addNode(snode);
+
+	setNodeData(snode, *data);
+
+	return snode;
+}
+
+Node *addStochasticNode(Model *model,
+		string const &distrName, vector<const Node *> const &parents,
+		Node *lower, Node *upper,
+		vector<double> const *data) {
+	if (data) {
+		return addObservedNode(model, distrName, parents, lower, upper, data);
+	} else {
+		return addUnobservedNode(model, distrName, parents, lower, upper);
+	}
+}
+
+/*
+ * Class:     fr.iarc.jags.model.Model
+ * Method:    addStochasticNode
+ */
+JNIEXPORT jobject JNICALL Java_fr_iarc_jags_model_Model_addStochasticNode(
+		JNIEnv *env, jobject model,
+		jstring distr, jobjectArray parents,
+		jobject lower, jobject upper,
+		jdoubleArray data) {
+	cout << "Model.addStochasticNode" << endl;
+	vector<double> const *dataVector = jArrayToDoubleVectorAlloc(env, data);
+	Node *node = addStochasticNode(getModel(env, model),
+		getString(env, distr), jArrayToNodeVector(env, parents),
+		getNode(env, lower), getNode(env, upper),
+		dataVector);
+	if (dataVector) delete dataVector;
+	cerr << "StochasticNode " << node << endl;
+	return createJavaNode(env, node);
+}
+
+/*
+ * Class:     fr.iarc.jags.model.Model
+ * Method:    addDeterministicNode
+ */
+JNIEXPORT jobject JNICALL Java_fr_iarc_jags_model_Model_addDeterministicNode(
+		JNIEnv *env, jobject model,
+		jstring funcName, jobjectArray jParents) {
+	static LogicalFactory factory;
+	vector<const Node*> parents = jArrayToNodeVector(env, jParents);
+	FunctionPtr func = Compiler::funcTab().find(getString(env, funcName));
+	Node *node = factory.getNode(func, parents, *getModel(env, model));
+	cout << "Model.addDeterministicNode " << node << endl;
+	return createJavaNode(env, node);
 }
 
 /*
