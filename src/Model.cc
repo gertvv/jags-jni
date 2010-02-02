@@ -169,8 +169,8 @@ JNIEXPORT jboolean JNICALL Java_fr_iarc_jags_model_Model_setRandomNumberGenerato
  * Method:    stopAdapting
  */
 JNIEXPORT jboolean JNICALL Java_fr_iarc_jags_model_Model_stopAdapting
-  (JNIEnv *, jobject) {
-	cout << "Model.stopAdapting" << endl;
+  (JNIEnv *env, jobject jModel) {
+	getModel(env, jModel)->adaptOff();
 }
 
 /*
