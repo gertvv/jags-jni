@@ -23,18 +23,10 @@
 
 #include <model/Monitor.h>
 
+#include "Util.h"
 #include "Monitor.h"
 
-using std::cout;
-using std::cerr;
-using std::endl;
 using std::vector;
-
-Monitor *getMonitor(JNIEnv *env, jobject jobj) {
-	jclass cls = env->GetObjectClass(jobj);
-	jfieldID fid = env->GetFieldID(cls, "d_ptr", "J");
-	return (Monitor *)env->GetLongField(jobj, fid);
-}
 
 /*
  * Class:     fr_iarc_jags_model_Monitor

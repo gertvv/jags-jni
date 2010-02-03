@@ -63,4 +63,7 @@ public class Model {
 
 	native public Node addConstantNode(
 			int[] dim, double[] value);
+
+	native public Node addAggregateNode(
+			int[] dim, Node[] parents, int[] offsets);
 }

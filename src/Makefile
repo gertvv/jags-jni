@@ -2,14 +2,12 @@ JAVA=/usr/lib/jvm/java-1.5.0-sun
 
 INCLUDE=-I../include -I$(JAVA)/include -I$(JAVA)/include/linux
 
-all: libjagsjni.so Main test
+all: libjagsjni.so test
 
 maven-install: test
 	(cd java; LD_LIBRARY_PATH="..:/usr/local/lib/JAGS/modules-2.0.0" mvn install)
 
-.PHONY: Main test maven-install all
-
-Main: java/target/classes/fr/iarc/jags/Main.class
+.PHONY: test maven-install all
 
 Model.h: java/target/classes/fr/iarc/jags/model/Model.class
 	javah -classpath java/target/classes -o Model.h \
@@ -26,13 +24,13 @@ Monitor.h:  java/target/classes/fr/iarc/jags/model/Monitor.class
 libjagsjni.so: ModuleManager.o Model.o Monitor.o
 	g++ -shared -Wl -o libjagsjni.so $^ `pkg-config --libs jags` -lltdl
 
-ModuleManager.o: ModuleManager.cc ModuleManager.h
+ModuleManager.o: ModuleManager.cc ModuleManager.h Util.h
 	g++ -c $(INCLUDE) `pkg-config --cflags jags` -o ModuleManager.o ModuleManager.cc
 
-Model.o: Model.cc Model.h
+Model.o: Model.cc Model.h Util.h
 	g++ -c $(INCLUDE) `pkg-config --cflags jags` -o Model.o Model.cc
 
-Monitor.o: Monitor.cc Monitor.h
+Monitor.o: Monitor.cc Monitor.h Util.h
 	g++ -c $(INCLUDE) `pkg-config --cflags jags` -o Monitor.o Monitor.cc
 
 %.class: %.java

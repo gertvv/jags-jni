@@ -26,7 +26,6 @@
 
 #include "ModuleManager.h"
 
-using std::cout;
 using std::cerr;
 using std::endl;
 using std::string;
@@ -83,8 +82,7 @@ bool unloadModule(string name) {
 JNIEXPORT void JNICALL Java_fr_iarc_jags_ModuleManager_loadModule
   (JNIEnv * env, jclass jcls, jstring jName) {
 	string name(env->GetStringUTFChars(jName, JNI_FALSE));
-	cout << "Load Module: " << name << endl;
-	cout << (loadModule(name) ? "Success" : "Failed") << endl;
+	loadModule(name);
 }
 
 /*
@@ -94,6 +92,5 @@ JNIEXPORT void JNICALL Java_fr_iarc_jags_ModuleManager_loadModule
 JNIEXPORT void JNICALL Java_fr_iarc_jags_ModuleManager_unloadModule
   (JNIEnv * env, jclass jcls, jstring jName) {
 	string name(env->GetStringUTFChars(jName, JNI_FALSE));
-	cout << "Unload Module: " << name << endl;
-	cout << (unloadModule(name) ? "Success" : "Failed") << endl;
+	unloadModule(name);
 }

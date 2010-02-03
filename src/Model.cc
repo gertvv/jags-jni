@@ -28,19 +28,20 @@
 #include <graph/StochasticNode.h>
 #include <graph/DeterministicNode.h>
 #include <graph/LogicalNode.h>
+#include <graph/AggNode.h>
 #include <compiler/Compiler.h>
 #include <compiler/LogicalFactory.h>
 #include <model/MonitorFactory.h>
 #include "Model.h"
 
-using std::cout;
-using std::cerr;
-using std::endl;
 using std::vector;
 using std::string;
 using std::list;
 
 Model *getModel(JNIEnv *env, jobject jobj) {
+	if (!jobj) {
+		return 0;
+	}
 	jclass cls = env->GetObjectClass(jobj);
 	jfieldID fid = env->GetFieldID(cls, "d_ptr", "J");
 	return (Model *)env->GetLongField(jobj, fid);
@@ -55,6 +56,14 @@ Node *getNode(JNIEnv *env, jobject jobj) {
 	return (Node *)env->GetLongField(jobj, fid);
 }
 
+Monitor *getMonitor(JNIEnv *env, jobject jobj) {
+	if (!jobj) {
+		return 0;
+	}
+	jclass cls = env->GetObjectClass(jobj);
+	jfieldID fid = env->GetFieldID(cls, "d_ptr", "J");
+	return (Monitor *)env->GetLongField(jobj, fid);
+}
 
 /*
  * Class:     fr.iarc.jags.model.Model
@@ -62,7 +71,6 @@ Node *getNode(JNIEnv *env, jobject jobj) {
  */
 JNIEXPORT void JNICALL Java_fr_iarc_jags_model_Model_initialize(
 		JNIEnv *env, jobject jModel, jboolean datagen) {
-	cout << "Model.initialize" << endl;
 	getModel(env, jModel)->initialize(datagen);
 }
 
@@ -81,7 +89,6 @@ JNIEXPORT jboolean JNICALL Java_fr_iarc_jags_model_Model_isInitialized
  */
 JNIEXPORT void JNICALL Java_fr_iarc_jags_model_Model_update(
 		JNIEnv *env, jobject jModel, jint n) {
-	cout << "Model.update" << endl;
 	getModel(env, jModel)->update((unsigned int)n);
 }
 
@@ -103,8 +110,6 @@ jobject createJavaMonitor(JNIEnv *env, Monitor *ptr) {
 Monitor *createMonitor(Model *model, Node *node, string const &type, int thin) {
 	list<MonitorFactory*> const &faclist = Model::monitorFactories();
 
-	cerr << "Monitor for " << node << endl;
-
 	Monitor *monitor = 0;
 	for(list<MonitorFactory*>::const_iterator j = faclist.begin();
 			j != faclist.end(); ++j) {
@@ -116,11 +121,6 @@ Monitor *createMonitor(Model *model, Node *node, string const &type, int thin) {
 		}
 	}
 
-	cerr << "Monitor: " << monitor << endl;
-	for (list<Monitor*>::const_iterator m = model->monitors().begin();
-			m != model->monitors().end(); ++m) {
-		cerr << "In model: " << *m << " " << (*m)->type();
-	}
 	return monitor;
 }
 
@@ -130,7 +130,6 @@ Monitor *createMonitor(Model *model, Node *node, string const &type, int thin) {
  */
 JNIEXPORT jobject JNICALL Java_fr_iarc_jags_model_Model_addTraceMonitor(
 		JNIEnv *env, jobject jModel, jobject jNode) {
-	cout << "Model.addTraceMonitor" << endl;
 	Node *node = getNode(env, jNode);
 	Model *model = getModel(env, jModel);
 	return createJavaMonitor(env,
@@ -141,9 +140,9 @@ JNIEXPORT jobject JNICALL Java_fr_iarc_jags_model_Model_addTraceMonitor(
  * Class:     fr.iarc.jags.model.Model
  * Method:    removeMonitor
  */
-JNIEXPORT void JNICALL Java_fr_iarc_jags_model_Model_removeMonitor
-  (JNIEnv *, jobject, jobject) {
-	cout << "Model.removeMonitor" << endl;
+JNIEXPORT void JNICALL Java_fr_iarc_jags_model_Model_removeMonitor(
+		JNIEnv *env, jobject jModel, jobject jMonitor) {
+	getModel(env, jModel)->removeMonitor(getMonitor(env, jMonitor));
 }
 
 /*
@@ -161,7 +160,7 @@ JNIEXPORT jint JNICALL Java_fr_iarc_jags_model_Model_nChains
  */
 JNIEXPORT jboolean JNICALL Java_fr_iarc_jags_model_Model_setRandomNumberGenerator
   (JNIEnv *, jobject, jstring, jint) {
-	cout << "Model.setRandomNumberGenerator" << endl;
+	throw "setRandomNumberGenerator not implemented!";
 }
 
 /*
@@ -258,11 +257,6 @@ Distribution const *getDistribution(string const &distrName) {
 	return dist;
 }
 
-Node *createStochasticNode(
-		string const &distrName, vector<const Node *> const &parents,
-		Node *lower, Node *upper) {
-}
-
 Node *addUnobservedNode(Model *model,
 		string const &distrName, vector<const Node *> const &parents,
 		Node *lower, Node *upper) {
@@ -324,14 +318,12 @@ JNIEXPORT jobject JNICALL Java_fr_iarc_jags_model_Model_addStochasticNode(
 		jstring distr, jobjectArray parents,
 		jobject lower, jobject upper,
 		jdoubleArray data) {
-	cout << "Model.addStochasticNode" << endl;
 	vector<double> const *dataVector = jArrayToDoubleVectorAlloc(env, data);
 	Node *node = addStochasticNode(getModel(env, model),
 		getString(env, distr), jArrayToNodeVector(env, parents),
 		getNode(env, lower), getNode(env, upper),
 		dataVector);
 	if (dataVector) delete dataVector;
-	cerr << "StochasticNode " << node << endl;
 	return createJavaNode(env, node);
 }
 
@@ -346,7 +338,6 @@ JNIEXPORT jobject JNICALL Java_fr_iarc_jags_model_Model_addDeterministicNode(
 	vector<const Node*> parents = jArrayToNodeVector(env, jParents);
 	FunctionPtr func = Compiler::funcTab().find(getString(env, funcName));
 	Node *node = factory.getNode(func, parents, *getModel(env, model));
-	cout << "Model.addDeterministicNode " << node << endl;
 	return createJavaNode(env, node);
 }
 
@@ -361,7 +352,21 @@ JNIEXPORT jobject JNICALL Java_fr_iarc_jags_model_Model_addConstantNode(
 	vector<double> value = jArrayToDoubleVector(env, jValue);
 	ConstantNode *node =
 		new ConstantNode(dim, value, getModel(env, model)->nchain());
-	cout << "Model.addConstantNode " << node << endl;
 	getModel(env, model)->addNode(node);
+	return createJavaNode(env, node);
+}
+
+/*
+ * Class:     fr.iarc.jags.model.Model
+ * Method:    addAggregateNode
+ */
+JNIEXPORT jobject JNICALL Java_fr_iarc_jags_model_Model_addAggregateNode(
+		JNIEnv *env, jobject jModel,
+		jintArray jDim, jobjectArray jParents, jintArray jOffsets) {
+	vector<unsigned int> dim = jArrayToUnsignedVector(env, jDim);
+	vector<const Node *> parents = jArrayToNodeVector(env, jParents);
+	vector<unsigned int> offsets = jArrayToUnsignedVector(env, jOffsets);
+	AggNode *node = new AggNode(dim, parents, offsets);
+	getModel(env, jModel)->addNode(node);
 	return createJavaNode(env, node);
 }

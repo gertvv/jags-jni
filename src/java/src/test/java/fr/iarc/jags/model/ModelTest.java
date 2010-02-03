@@ -90,6 +90,26 @@ public class ModelTest {
 		}
 	}
 
+	@Test public void testAggregateNode() {
+		Node n = model.addConstantNode(new int[]{2}, new double[]{8.8, 8.0});
+		Node g = model.addAggregateNode(new int[]{2},
+			new Node[]{n, n}, new int[]{1, 0});
+		model.initialize(true);
+		model.stopAdapting();
+		Monitor m = model.addTraceMonitor(g);
+		model.update(10);
+
+		assertEquals(10, model.getCurrentIteration());
+		assertEquals(2, m.dim()[0]); // Node dimension
+		assertEquals(10, m.dim()[1]); // Iterations dimension
+		assertEquals(1, m.dim()[2]); // Chains dimension
+		assertEquals(20, m.value(0).length);
+		for (int i = 0; i < m.value(0).length / 2; ++i) {
+			assertEquals(8.0, m.value(0)[2 * i], 0.00001);
+			assertEquals(8.8, m.value(0)[2 * i + 1], 0.00001);
+		}
+	}
+
 	@Test public void testUnobservedStochasticNode() throws MathException {
 		Node mu = model.addConstantNode(new int[]{1}, new double[]{0});
 		Node tau = model.addConstantNode(new int[]{1}, new double[]{1});
