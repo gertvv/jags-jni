@@ -17,13 +17,11 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package fr.iarc.jags;
+package net.sourceforge.jags.model;
 
-public class ModuleManager {
-	static {
-		System.loadLibrary("jagsjni");
+public class Node {
+	private long d_ptr;
+	private Node(long ptr) {
+		d_ptr = ptr;
 	}
-
-	native static public void loadModule(String name);
-	native static public void unloadModule(String name);
 }

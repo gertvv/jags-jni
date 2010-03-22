@@ -17,9 +17,9 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package fr.iarc.jags.model;
+package net.sourceforge.jags.model;
 
-import fr.iarc.jags.ModuleManager;
+import net.sourceforge.jags.ModuleManager;
 
 import org.junit.Before;
 import org.junit.Test;

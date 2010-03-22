@@ -9,17 +9,17 @@ maven-install: test
 
 .PHONY: test maven-install all
 
-Model.h: java/target/classes/fr/iarc/jags/model/Model.class
+Model.h: java/target/classes/net/sourceforge/jags/model/Model.class
 	javah -classpath java/target/classes -o Model.h \
-		fr.iarc.jags.model.Model
+		net.sourceforge.jags.model.Model
 
-ModuleManager.h: java/target/classes/fr/iarc/jags/ModuleManager.class
+ModuleManager.h: java/target/classes/net/sourceforge/jags/ModuleManager.class
 	javah -classpath java/target/classes -o ModuleManager.h \
-		fr.iarc.jags.ModuleManager
+		net.sourceforge.jags.ModuleManager
 
-Monitor.h:  java/target/classes/fr/iarc/jags/model/Monitor.class
+Monitor.h:  java/target/classes/net/sourceforge/jags/model/Monitor.class
 	javah -classpath java/target/classes -o Monitor.h \
-		fr.iarc.jags.model.Monitor
+		net.sourceforge.jags.model.Monitor
 
 libjagsjni.so: ModuleManager.o Model.o Monitor.o
 	g++ -shared -Wl -o libjagsjni.so $^ `pkg-config --libs jags` -lltdl
