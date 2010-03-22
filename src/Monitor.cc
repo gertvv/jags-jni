@@ -16,6 +16,7 @@
  * You should have received a copy of the GNU General Public License along with
  * this program; if not, see <http://www.gnu.org/licenses/>.
  */
+
 #include <iostream>
 #include <string>
 #include <vector>
@@ -28,61 +29,61 @@
 using std::vector;
 
 /*
- * Class:     fr_iarc_jags_model_Monitor
+ * Class:     net_sourceforge_jags_model_Monitor
  * Method:    getFirstIteration
  * Signature: ()I
  */
-JNIEXPORT jint JNICALL Java_fr_iarc_jags_model_Monitor_getFirstIteration(
+JNIEXPORT jint JNICALL Java_net_sourceforge_jags_model_Monitor_getFirstIteration(
 		JNIEnv *env, jobject jMonitor) {
 	return (jint) getMonitor(env, jMonitor)->start();
 }
 
 /*
- * Class:     fr_iarc_jags_model_Monitor
+ * Class:     net_sourceforge_jags_model_Monitor
  * Method:    getLastIteration
  * Signature: ()I
  */
-JNIEXPORT jint JNICALL Java_fr_iarc_jags_model_Monitor_getLastIteration(
+JNIEXPORT jint JNICALL Java_net_sourceforge_jags_model_Monitor_getLastIteration(
 		JNIEnv *env, jobject jMonitor) {
 	return (jint) getMonitor(env, jMonitor)->end();
 }
 
 /*
- * Class:     fr_iarc_jags_model_Monitor
+ * Class:     net_sourceforge_jags_model_Monitor
  * Method:    getThinningInterval
  * Signature: ()I
  */
-JNIEXPORT jint JNICALL Java_fr_iarc_jags_model_Monitor_getThinningInterval(
+JNIEXPORT jint JNICALL Java_net_sourceforge_jags_model_Monitor_getThinningInterval(
 		JNIEnv *env, jobject jMonitor) {
 	return (jint) getMonitor(env, jMonitor)->thin();
 }
 
 /*
- * Class:     fr_iarc_jags_model_Monitor
+ * Class:     net_sourceforge_jags_model_Monitor
  * Method:    getIterationCount
  * Signature: ()I
  */
-JNIEXPORT jint JNICALL Java_fr_iarc_jags_model_Monitor_getIterationCount(
+JNIEXPORT jint JNICALL Java_net_sourceforge_jags_model_Monitor_getIterationCount(
 		JNIEnv *env, jobject jMonitor) {
 	return (jint) getMonitor(env, jMonitor)->niter();
 }
 
 /*
- * Class:     fr_iarc_jags_model_Monitor
+ * Class:     net_sourceforge_jags_model_Monitor
  * Method:    getType
  * Signature: ()Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL Java_fr_iarc_jags_model_Monitor_getType(
+JNIEXPORT jstring JNICALL Java_net_sourceforge_jags_model_Monitor_getType(
 		JNIEnv *env, jobject jMonitor) {
 	return env->NewStringUTF(getMonitor(env, jMonitor)->type().c_str());
 }
 
 /*
- * Class:     fr_iarc_jags_model_Monitor
+ * Class:     net_sourceforge_jags_model_Monitor
  * Method:    nChains
  * Signature: ()I
  */
-JNIEXPORT jint JNICALL Java_fr_iarc_jags_model_Monitor_nChains(
+JNIEXPORT jint JNICALL Java_net_sourceforge_jags_model_Monitor_nChains(
 		JNIEnv *env, jobject jMonitor) {
 	return (jint) getMonitor(env, jMonitor)->nchain();
 }
@@ -102,21 +103,21 @@ jdoubleArray vectorToJDoubleArray(
 }
 
 /*
- * Class:     fr_iarc_jags_model_Monitor
+ * Class:     net_sourceforge_jags_model_Monitor
  * Method:    dim
  * Signature: ()[I
  */
-JNIEXPORT jintArray JNICALL Java_fr_iarc_jags_model_Monitor_dim(
+JNIEXPORT jintArray JNICALL Java_net_sourceforge_jags_model_Monitor_dim(
 		JNIEnv *env, jobject jMonitor) {
 	return vectorToJIntArray(env, getMonitor(env, jMonitor)->dim());
 }
 
 /*
- * Class:     fr_iarc_jags_model_Monitor
+ * Class:     net_sourceforge_jags_model_Monitor
  * Method:    value
  * Signature: (I)[D
  */
-JNIEXPORT jdoubleArray JNICALL Java_fr_iarc_jags_model_Monitor_value(
+JNIEXPORT jdoubleArray JNICALL Java_net_sourceforge_jags_model_Monitor_value(
 		JNIEnv *env, jobject jMonitor, jint chain) {
 	return vectorToJDoubleArray(env, getMonitor(env, jMonitor)->value(chain));
 }

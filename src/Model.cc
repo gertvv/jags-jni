@@ -16,6 +16,7 @@
  * You should have received a copy of the GNU General Public License along with
  * this program; if not, see <http://www.gnu.org/licenses/>.
  */
+
 #include <iostream>
 #include <string>
 #include <vector>
@@ -65,43 +66,43 @@ Monitor *getMonitor(JNIEnv *env, jobject jobj) {
 }
 
 /*
- * Class:     fr.iarc.jags.model.Model
+ * Class:     net.sourceforge.jags.model.Model
  * Method:    initialize
  */
-JNIEXPORT void JNICALL Java_fr_iarc_jags_model_Model_initialize(
+JNIEXPORT void JNICALL Java_net_sourceforge_jags_model_Model_initialize(
 		JNIEnv *env, jobject jModel, jboolean datagen) {
 	getModel(env, jModel)->initialize(datagen);
 }
 
 /*
- * Class:     fr.iarc.jags.model.Model
+ * Class:     net.sourceforge.jags.model.Model
  * Method:    isInitialized
  */
-JNIEXPORT jboolean JNICALL Java_fr_iarc_jags_model_Model_isInitialized
+JNIEXPORT jboolean JNICALL Java_net_sourceforge_jags_model_Model_isInitialized
   (JNIEnv *env, jobject jobj) {
 	return (jboolean) getModel(env, jobj)->isInitialized();
 }
 
 /*
- * Class:     fr.iarc.jags.model.Model
+ * Class:     net.sourceforge.jags.model.Model
  * Method:    update
  */
-JNIEXPORT void JNICALL Java_fr_iarc_jags_model_Model_update(
+JNIEXPORT void JNICALL Java_net_sourceforge_jags_model_Model_update(
 		JNIEnv *env, jobject jModel, jint n) {
 	getModel(env, jModel)->update((unsigned int)n);
 }
 
 /*
- * Class:     fr.iarc.jags.model.Model
+ * Class:     net.sourceforge.jags.model.Model
  * Method:    getCurrentIteration
  */
-JNIEXPORT jint JNICALL Java_fr_iarc_jags_model_Model_getCurrentIteration
+JNIEXPORT jint JNICALL Java_net_sourceforge_jags_model_Model_getCurrentIteration
   (JNIEnv *env, jobject jobj) {
 	return (jint) getModel(env, jobj)->iteration();
 }
 
 jobject createJavaMonitor(JNIEnv *env, Monitor *ptr) {
-	jclass cls = env->FindClass("fr/iarc/jags/model/Monitor");
+	jclass cls = env->FindClass("net/sourceforge/jags/model/Monitor");
 	jmethodID mid = env->GetMethodID(cls, "<init>", "(J)V");
 	return env->NewObject(cls, mid, (jlong)ptr);
 }
@@ -124,10 +125,10 @@ Monitor *createMonitor(Model *model, Node *node, string const &type, int thin) {
 }
 
 /*
- * Class:     fr.iarc.jags.model.Model
+ * Class:     net.sourceforge.jags.model.Model
  * Method:    addTraceMonitor
  */
-JNIEXPORT jobject JNICALL Java_fr_iarc_jags_model_Model_addTraceMonitor(
+JNIEXPORT jobject JNICALL Java_net_sourceforge_jags_model_Model_addTraceMonitor(
 		JNIEnv *env, jobject jModel, jobject jNode) {
 	Node *node = getNode(env, jNode);
 	Model *model = getModel(env, jModel);
@@ -136,71 +137,71 @@ JNIEXPORT jobject JNICALL Java_fr_iarc_jags_model_Model_addTraceMonitor(
 }
 
 /*
- * Class:     fr.iarc.jags.model.Model
+ * Class:     net.sourceforge.jags.model.Model
  * Method:    removeMonitor
  */
-JNIEXPORT void JNICALL Java_fr_iarc_jags_model_Model_removeMonitor(
+JNIEXPORT void JNICALL Java_net_sourceforge_jags_model_Model_removeMonitor(
 		JNIEnv *env, jobject jModel, jobject jMonitor) {
 	getModel(env, jModel)->removeMonitor(getMonitor(env, jMonitor));
 }
 
 /*
- * Class:     fr.iarc.jags.model.Model
+ * Class:     net.sourceforge.jags.model.Model
  * Method:    nChains
  */
-JNIEXPORT jint JNICALL Java_fr_iarc_jags_model_Model_nChains
+JNIEXPORT jint JNICALL Java_net_sourceforge_jags_model_Model_nChains
   (JNIEnv *env, jobject jobj) {
 	return (jint) getModel(env, jobj)->nchain();
 }
 
 /*
- * Class:     fr.iarc.jags.model.Model
+ * Class:     net.sourceforge.jags.model.Model
  * Method:    setRandomNumberGenerator
  */
-JNIEXPORT jboolean JNICALL Java_fr_iarc_jags_model_Model_setRandomNumberGenerator
+JNIEXPORT jboolean JNICALL Java_net_sourceforge_jags_model_Model_setRandomNumberGenerator
   (JNIEnv *, jobject, jstring, jint) {
 	throw "setRandomNumberGenerator not implemented!";
 }
 
 /*
- * Class:     fr.iarc.jags.model.Model
+ * Class:     net.sourceforge.jags.model.Model
  * Method:    stopAdapting
  */
-JNIEXPORT jboolean JNICALL Java_fr_iarc_jags_model_Model_stopAdapting
+JNIEXPORT jboolean JNICALL Java_net_sourceforge_jags_model_Model_stopAdapting
   (JNIEnv *env, jobject jModel) {
 	getModel(env, jModel)->adaptOff();
 }
 
 /*
- * Class:     fr.iarc.jags.model.Model
+ * Class:     net.sourceforge.jags.model.Model
  * Method:    isAdapting
  */
-JNIEXPORT jboolean JNICALL Java_fr_iarc_jags_model_Model_isAdapting
+JNIEXPORT jboolean JNICALL Java_net_sourceforge_jags_model_Model_isAdapting
   (JNIEnv *env, jobject jobj) {
 	return (jboolean) getModel(env, jobj)->isAdapting();
 }
 
 /*
- * Class:     fr.iarc.jags.model.Model
+ * Class:     net.sourceforge.jags.model.Model
  * Method:    construct
  */
-JNIEXPORT jlong JNICALL Java_fr_iarc_jags_model_Model_construct
+JNIEXPORT jlong JNICALL Java_net_sourceforge_jags_model_Model_construct
   (JNIEnv *env, jobject obj, jint nChains) {
 	Model *model = new Model((int)nChains);
 	return ((jlong) model);
 }
 
 /*
- * Class:     fr.iarc.jags.model.Model
+ * Class:     net.sourceforge.jags.model.Model
  * Method:    destruct
  */
-JNIEXPORT void JNICALL Java_fr_iarc_jags_model_Model_destruct
+JNIEXPORT void JNICALL Java_net_sourceforge_jags_model_Model_destruct
   (JNIEnv *env, jobject jobj) {
 	delete getModel(env, jobj);
 }
 
 jobject createJavaNode(JNIEnv *env, Node *ptr) {
-	jclass cls = env->FindClass("fr/iarc/jags/model/Node");
+	jclass cls = env->FindClass("net/sourceforge/jags/model/Node");
 	jmethodID mid = env->GetMethodID(cls, "<init>", "(J)V");
 	return env->NewObject(cls, mid, (jlong)ptr);
 }
@@ -309,10 +310,10 @@ Node *addStochasticNode(Model *model,
 }
 
 /*
- * Class:     fr.iarc.jags.model.Model
+ * Class:     net.sourceforge.jags.model.Model
  * Method:    addStochasticNode
  */
-JNIEXPORT jobject JNICALL Java_fr_iarc_jags_model_Model_addStochasticNode(
+JNIEXPORT jobject JNICALL Java_net_sourceforge_jags_model_Model_addStochasticNode(
 		JNIEnv *env, jobject model,
 		jstring distr, jobjectArray parents,
 		jobject lower, jobject upper,
@@ -327,10 +328,10 @@ JNIEXPORT jobject JNICALL Java_fr_iarc_jags_model_Model_addStochasticNode(
 }
 
 /*
- * Class:     fr.iarc.jags.model.Model
+ * Class:     net.sourceforge.jags.model.Model
  * Method:    addDeterministicNode
  */
-JNIEXPORT jobject JNICALL Java_fr_iarc_jags_model_Model_addDeterministicNode(
+JNIEXPORT jobject JNICALL Java_net_sourceforge_jags_model_Model_addDeterministicNode(
 		JNIEnv *env, jobject model,
 		jstring funcName, jobjectArray jParents) {
 	static LogicalFactory factory;
@@ -341,10 +342,10 @@ JNIEXPORT jobject JNICALL Java_fr_iarc_jags_model_Model_addDeterministicNode(
 }
 
 /*
- * Class:     fr.iarc.jags.model.Model
+ * Class:     net.sourceforge.jags.model.Model
  * Method:    addConstantNode
  */
-JNIEXPORT jobject JNICALL Java_fr_iarc_jags_model_Model_addConstantNode(
+JNIEXPORT jobject JNICALL Java_net_sourceforge_jags_model_Model_addConstantNode(
 		JNIEnv *env, jobject model,
 		jintArray jDim, jdoubleArray jValue) {
 	vector<unsigned int> dim = jArrayToUnsignedVector(env, jDim);
@@ -356,10 +357,10 @@ JNIEXPORT jobject JNICALL Java_fr_iarc_jags_model_Model_addConstantNode(
 }
 
 /*
- * Class:     fr.iarc.jags.model.Model
+ * Class:     net.sourceforge.jags.model.Model
  * Method:    addAggregateNode
  */
-JNIEXPORT jobject JNICALL Java_fr_iarc_jags_model_Model_addAggregateNode(
+JNIEXPORT jobject JNICALL Java_net_sourceforge_jags_model_Model_addAggregateNode(
 		JNIEnv *env, jobject jModel,
 		jintArray jDim, jobjectArray jParents, jintArray jOffsets) {
 	vector<unsigned int> dim = jArrayToUnsignedVector(env, jDim);

@@ -16,6 +16,7 @@
  * You should have received a copy of the GNU General Public License along with
  * this program; if not, see <http://www.gnu.org/licenses/>.
  */
+
 #include <iostream>
 #include <string>
 #include <list>
@@ -75,20 +76,20 @@ bool unloadModule(string name) {
 }
 
 /*
- * Class:     fr.iarc.jags.ModuleManager
+ * Class:     net.sourceforge.jags.ModuleManager
  * Method:    loadModule
  */
-JNIEXPORT void JNICALL Java_fr_iarc_jags_ModuleManager_loadModule
+JNIEXPORT void JNICALL Java_net_sourceforge_jags_ModuleManager_loadModule
   (JNIEnv * env, jclass jcls, jstring jName) {
 	string name(env->GetStringUTFChars(jName, JNI_FALSE));
 	loadModule(name);
 }
 
 /*
- * Class:     fr.iarc.jags.ModuleManager
+ * Class:     net.sourceforge.jags.ModuleManager
  * Method:    unloadModule
  */
-JNIEXPORT void JNICALL Java_fr_iarc_jags_ModuleManager_unloadModule
+JNIEXPORT void JNICALL Java_net_sourceforge_jags_ModuleManager_unloadModule
   (JNIEnv * env, jclass jcls, jstring jName) {
 	string name(env->GetStringUTFChars(jName, JNI_FALSE));
 	unloadModule(name);
