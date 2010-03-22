@@ -8,8 +8,8 @@
 
 	<target name="license">
 		<replaceregexp flags="s"
-			match=".*package fr.iarc.jags"
-			replace="${header}package fr.iarc.jags">
+			match=".*package net.sourceforge.jags"
+			replace="${header}package net.sourceforge.jags">
 			<fileset dir="java/src">
 				<include name="**/*.java" />
 			</fileset>
